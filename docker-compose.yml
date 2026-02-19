@@ -24,5 +24,6 @@ services:
       - kafka
     environment:
       KAFKA_BOOTSTRAP_SERVERS: "kafka:9094"
-      SYMBOL: "btcusdt"
+      # 可选：不设则用 settings 默认；设为空则关闭压缩便于排查
+      # KAFKA_COMPRESSION_TYPE: ""
     restart: unless-stopped

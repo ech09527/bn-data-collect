@@ -1,15 +1,16 @@
 """
 从币安永续合约 WebSocket 拉取 aggtrade 并异步写入 Kafka。
-所有 I/O 均为 asyncio（WebSocket + Kafka）。
+所有 I/O 均为 asyncio（WebSocket + Kafka）；Kafka 发送带背压与批处理以应对高吞吐。
 """
 import asyncio
 import logging
 import sys
+from collections import deque
 
 from aiokafka import AIOKafkaProducer
 
 from binance_ws import stream_aggtrade
-from config import KAFKA_TOPIC_AGGTRADE, SYMBOL
+from config import KAFKA_TOPIC_AGGTRADE
 from kafka_producer import create_producer, send_aggtrade, stop_producer
 
 logging.basicConfig(
@@ -23,21 +24,23 @@ logger = logging.getLogger(__name__)
 
 async def run() -> None:
     producer: AIOKafkaProducer | None = None
+    pending: deque[asyncio.Future] = deque()
     try:
         producer = await create_producer()
         logger.info(
-            "开始消费 %s aggtrade 并写入 Kafka topic=%s", SYMBOL, KAFKA_TOPIC_AGGTRADE
+            "开始消费全部 USDT 永续 aggtrade 并写入 Kafka topic=%s",
+            KAFKA_TOPIC_AGGTRADE,
         )
         count = 0
         async for payload in stream_aggtrade():
-            await send_aggtrade(producer, payload)
+            await send_aggtrade(producer, payload, pending_futures=pending)
             count += 1
-            if count % 100 == 0:
-                logger.info("已推送 %d 条 aggtrade", count)
+            if count % 1000 == 0:
+                logger.info("已推送 %d 条 aggtrade (in-flight=%d)", count, len(pending))
     except asyncio.CancelledError:
         logger.info("任务被取消")
     finally:
-        await stop_producer(producer)
+        await stop_producer(producer, pending_futures=pending)
 
 
 def main() -> None:

@@ -1,14 +1,19 @@
 # 默认配置，可通过环境变量或 .secrets.toml 覆盖
-# 环境变量使用大写，如 SYMBOL、KAFKA_BOOTSTRAP_SERVERS
+# 环境变量使用大写，如 KAFKA_BOOTSTRAP_SERVERS
 
 [default]
-# 币安 USDT 本位永续（仅 USD-M，如 btcusdt、ethusdt）
-symbol = "btcusdt"
+# 采集全部 USDT 本位永续合约（USD-M）aggtrade，无需配置 symbol
 ws_reconnect_delay = 5.0
 
 # Kafka
 kafka_bootstrap_servers = "localhost:9092"
 kafka_topic_aggtrade = "binance-futures-aggtrade"
+# 性能：批处理等待时间(ms)，适当增大可提高吞吐、略增延迟，0 表示不等待
+kafka_linger_ms = 5
+# 最大未确认发送条数，超过时对上游施加背压，避免内存与堆积
+kafka_max_in_flight = 10000
+# 压缩：可选 "gzip" / "snappy" / "lz4" / "zstd" 或 "" 表示不压缩
+kafka_compression_type = "lz4"
 
 [development]
 # 开发环境可在此覆盖
