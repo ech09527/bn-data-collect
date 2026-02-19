@@ -1,0 +1,8 @@
+# 币安 API 与 WebSocket（含永续合约）
+python-binance>=1.0.20
+
+# 异步 Kafka 客户端
+aiokafka>=0.10.0
+
+# 配置管理（支持 toml、env、.secrets）
+dynaconf>=3.2.0

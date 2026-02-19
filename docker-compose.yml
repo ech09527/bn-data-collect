@@ -1,0 +1,28 @@
+# 本地验证：KRaft Kafka + 采集应用
+# 宿主机访问 Kafka 用 localhost:9092，应用容器通过 kafka:9094 连接
+services:
+  kafka:
+    image: apache/kafka:3.8.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,INTERNAL://0.0.0.0:9094"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092,INTERNAL://kafka:9094"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@localhost:9093"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+
+  app:
+    build: .
+    container_name: bn-aggtrade-app
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:9094"
+      SYMBOL: "btcusdt"
+    restart: unless-stopped

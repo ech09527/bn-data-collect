@@ -1,0 +1,17 @@
+# 默认配置，可通过环境变量或 .secrets.toml 覆盖
+# 环境变量使用大写，如 SYMBOL、KAFKA_BOOTSTRAP_SERVERS
+
+[default]
+# 币安 USDT 本位永续（仅 USD-M，如 btcusdt、ethusdt）
+symbol = "btcusdt"
+ws_reconnect_delay = 5.0
+
+# Kafka
+kafka_bootstrap_servers = "localhost:9092"
+kafka_topic_aggtrade = "binance-futures-aggtrade"
+
+[development]
+# 开发环境可在此覆盖
+
+[production]
+# 生产环境可在此覆盖
